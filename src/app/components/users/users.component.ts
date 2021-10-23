@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { User } from '../../models/User';
+import { NgForm } from '@angular/forms';
+import { UserService } from 'src/app/services/user.service';
 
 @Component({
   selector: 'app-users',
@@ -7,68 +9,54 @@ import { User } from '../../models/User';
   styleUrls: ['./users.component.css'],
 })
 export class UsersComponent implements OnInit {
-  users: User[] = [];
-  showExtended: boolean = false;
+  user: any = {
+    firstName: '',
+    lastName: '',
+    email: '',
+  };
+  users: User[];
+  showExtended: boolean = true;
   loaded: boolean = false;
-  enableAdd: boolean = true;
+  enableAdd: boolean = false;
+  showUserForm: boolean = false;
+  @ViewChild('userForm') form: any;
+  data: any;
 
-  constructor() {
-    this.users = [
-      {
-        firstName: 'Jhon',
-        lastName: 'Doe',
-        age: 30,
-        address: {
-          street: '50 Main st',
-          city: 'Boston',
-          state: 'MA',
-        },
-        // image: 'http://lorempixel.com/600/600/people/3',
-        isActive: true,
-        // balance: 100,
-        registered: new Date('01/02/2018 08:30:00'),
-      },
-      {
-        firstName: 'Kevin',
-        lastName: 'Jhonson',
-        age: 34,
-        address: {
-          street: '20 School st',
-          city: 'Lyn',
-          state: 'MA',
-        },
-        // image: 'http://lorempixel.com/600/600/people/2',
-        isActive: false,
-        // balance: 200,
-        registered: new Date('03/11/2018 06:20:00'),
-      },
-      {
-        firstName: 'Karen',
-        lastName: 'Williams',
-        age: 26,
-        address: {
-          street: '55 Mill st',
-          city: 'Miami',
-          state: 'FL',
-        },
-        // image: 'http://lorempixel.com/600/600/people/1',
-        isActive: true,
-        // balance: 50,
-        registered: new Date('11/02/2016 10:30:00'),
-      },
-    ];
+  constructor(private userService: UserService) {}
 
-    this.loaded = true;
+  ngOnInit(): void {
+    this.userService.getData().subscribe((data) => {
+      console.log(data);
+    });
+
+    this.userService.getUsers().subscribe((users) => {
+      this.users = users;
+      this.loaded = true;
+    });
   }
 
-  ngOnInit(): void {}
+  addUser() {
+    this.user.isActive = true;
+    this.user.registered = new Date();
+    this.users.unshift(this.user);
 
-  addUser(user: User) {
-    this.users.push(user);
+    this.user = {
+      firstName: '',
+      lastName: '',
+      email: '',
+    };
   }
 
-  fireEvent(e: any) {
-    //console.log('button');
-    console.log(e.type);
+  onSubmit({ value, valid }: NgForm) {
+    if (!valid) {
+      console.log('Form is not valid');
+    } else {
+      value.isActive = true;
+      value.hide = true;
+      value.registered = new Date();
+
+      this.userService.addUser(value);
+      this.form.reset();
+    }
   }
 }
